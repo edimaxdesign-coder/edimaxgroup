@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edimax Group | 集團解決方案入口網站</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Edimax Group">
+        <img src="logo/group logo.png" alt="訊舟集團 Edimax Group" />
+      </a>
+      <nav class="main-nav" aria-label="主要導覽">
+        <a href="#matrix">服務團隊</a>
+        <a href="#solutions">解決方案</a>
+        <a href="#cases">導入情境</a>
+        <a href="#companies">合作夥伴</a>
+      </nav>
+      <a class="header-action" href="#contact">諮詢方案</a>
+    </header>
+    <a class="secret-admin-link" href="admin.html" aria-label="前往後台管理系統" title="後台管理"></a>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">Networks, Devices and Services</span>
+          <h1>為企業、建案與營運商規劃穩定的網路連線。</h1>
+          <p>
+            涵蓋 Wi-Fi、寬頻設備、OEM/ODM 與智慧場域應用，支援產品規格、供貨方式與導入服務評估。
+          </p>
+          <div class="hero-actions">
+            <a class="primary-button" href="#solutions">查看解決方案</a>
+            <a class="secondary-button" href="#matrix">瀏覽服務團隊</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="matrix" class="section">
+        <div class="section-heading compact">
+          <span class="eyebrow">Service Teams</span>
+          <h2>依需求找到對應團隊</h2>
+          <p>品牌產品、製造供貨、寬頻通訊、系統整合與數位平台，由不同團隊提供專業支援。</p>
+        </div>
+        <div id="companyMatrix" class="matrix-grid" aria-live="polite"></div>
+      </section>
+
+      <section id="solutions" class="section muted">
+        <div class="section-heading compact">
+          <span class="eyebrow">Solutions by Scenario</span>
+          <h2>依場景選擇解決方案</h2>
+          <p>涵蓋建築網路、寬頻設備、AIoT 與企業多據點連線，整理設備、平台與導入需求。</p>
+        </div>
+        <div id="solutionGrid" class="solution-grid" aria-live="polite"></div>
+      </section>
+
+      <section id="cases" class="section">
+        <div class="section-heading compact">
+          <span class="eyebrow">Use Cases</span>
+          <h2>參考相近的導入情境</h2>
+          <p>了解不同場域如何搭配設備、平台與服務，作為規劃新專案時的參考。</p>
+        </div>
+        <div id="caseLayout" class="case-layout" aria-live="polite"></div>
+      </section>
+
+      <section id="companies" class="section muted">
+        <div class="section-heading compact">
+          <span class="eyebrow">Group Companies</span>
+          <h2>認識訊舟集團旗下團隊</h2>
+          <p>依產品線與服務內容找到相關公司，進一步了解品牌、製造、通訊與平台服務。</p>
+        </div>
+        <div id="companyLinks" class="company-links" aria-live="polite"></div>
+      </section>
+
+      <section id="contact" class="contact-band">
+        <div>
+          <span class="eyebrow">Contact</span>
+          <h2>有產品、規格或專案需求，歡迎與我們聯繫。</h2>
+        </div>
+        <a class="primary-button" href="mailto:contact@example.com">聯絡我們</a>
+      </section>
+    </main>
+
+    <script src="cms-data.js"></script>
+    <script src="cms-store.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

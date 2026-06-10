@@ -26,6 +26,29 @@
     </header>
 
     <main>
+      <section id="authGate" class="auth-section">
+        <form id="authForm" class="auth-card">
+          <span class="eyebrow">CMS Access</span>
+          <h1 id="authTitle">後台登入</h1>
+          <p id="authDescription">請使用管理帳號登入後台。</p>
+          <label id="authNameField" hidden>
+            <span>管理員名稱</span>
+            <input id="authNameInput" type="text" autocomplete="name" />
+          </label>
+          <label>
+            <span>Email</span>
+            <input id="authEmailInput" type="email" autocomplete="username" required />
+          </label>
+          <label>
+            <span>密碼</span>
+            <input id="authPasswordInput" type="password" autocomplete="current-password" minlength="8" required />
+          </label>
+          <div id="authMessage" class="form-message" aria-live="polite"></div>
+          <button id="authSubmitButton" type="submit">登入</button>
+        </form>
+      </section>
+
+      <section id="adminApp" hidden>
       <section id="admin" class="section admin-section">
         <div class="section-heading compact">
           <span class="eyebrow">CMS Preview</span>
@@ -38,6 +61,7 @@
             <button class="active" type="button" data-collection="companies">公司資料</button>
             <button type="button" data-collection="solutions">解決方案</button>
             <button type="button" data-collection="cases">合作案例</button>
+            <button type="button" data-collection="contacts">聯絡我們</button>
           </aside>
           <div class="admin-main">
             <div class="admin-topbar">
@@ -45,7 +69,12 @@
                 <strong id="adminTitle">公司資料</strong>
                 <span id="adminSummary">已發布 0 · 草稿 0</span>
               </div>
-              <button id="newContentButton" type="button">新增內容</button>
+              <div class="admin-account-actions">
+                <span id="currentUserLabel"></span>
+                <button id="manageUsersButton" type="button" class="ghost-button">帳號管理</button>
+                <button id="logoutButton" type="button" class="ghost-button">登出</button>
+                <button id="newContentButton" type="button">新增內容</button>
+              </div>
             </div>
             <div class="admin-workspace">
               <form id="contentForm" class="admin-form">
@@ -76,6 +105,14 @@
                     <span>展示狀態</span>
                     <input id="displayStatusInput" type="text" />
                   </label>
+                  <label data-field="email">
+                    <span>Email</span>
+                    <input id="emailInput" type="email" />
+                  </label>
+                  <label data-field="department">
+                    <span>部門／用途</span>
+                    <input id="departmentInput" type="text" />
+                  </label>
                   <label class="wide" data-field="logo">
                     <span>Logo 路徑</span>
                     <input id="logoInput" type="text" />
@@ -85,7 +122,7 @@
                     <input id="urlInput" type="url" />
                   </label>
                   <label class="wide">
-                    <span>摘要</span>
+                    <span id="summaryLabel">摘要</span>
                     <textarea id="summaryInput" rows="4" required></textarea>
                   </label>
                   <label class="wide" data-field="tags">
@@ -110,7 +147,7 @@
                   </label>
                   <label class="checkbox-line">
                     <input id="publishedInput" type="checkbox" />
-                    <span>發布到前台</span>
+                    <span id="publishedLabel">發布到前台</span>
                   </label>
                 </div>
                 <div id="formMessage" class="form-message" aria-live="polite"></div>
@@ -129,9 +166,46 @@
           </div>
         </div>
       </section>
+      </section>
+
+      <dialog id="accountDialog" class="account-dialog">
+        <div class="dialog-heading">
+          <div>
+            <span class="eyebrow">Access Control</span>
+            <h2>帳號與權限</h2>
+          </div>
+          <button id="closeAccountDialogButton" type="button" class="icon-button" aria-label="關閉">×</button>
+        </div>
+        <form id="accountForm" class="account-form">
+          <label>
+            <span>使用者名稱</span>
+            <input id="accountNameInput" type="text" required />
+          </label>
+          <label>
+            <span>Email</span>
+            <input id="accountEmailInput" type="email" required />
+          </label>
+          <label>
+            <span>密碼</span>
+            <input id="accountPasswordInput" type="password" minlength="8" required />
+          </label>
+          <label>
+            <span>角色</span>
+            <select id="accountRoleInput">
+              <option value="editor">編輯者</option>
+              <option value="admin">管理員</option>
+            </select>
+          </label>
+          <div id="accountMessage" class="form-message" aria-live="polite"></div>
+          <button type="submit">建立帳號</button>
+        </form>
+        <div id="accountRows" class="account-rows"></div>
+      </dialog>
     </main>
     <script src="cms-data.js"></script>
+    <script src="cms-contacts-data.js"></script>
     <script src="cms-store.js"></script>
+    <script src="admin-auth.js"></script>
     <script src="admin-cms.js"></script>
   </body>
 </html>

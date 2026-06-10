@@ -1,1 +1,342 @@
-const labels={companies:"公司資料",solutions:"解決方案",cases:"合作案例"};const fieldSets={companies:["shortName","logo","url","tags"],solutions:["accent","participants","image"],cases:["type","displayStatus","participants","background","featured"]};let activeCollection="companies";let editingItem=null;const $=(s)=>document.querySelector(s);const $$=(s)=>[...document.querySelectorAll(s)];const escapeHtml=(v)=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");const form=$("#contentForm"),rows=$("#contentRows"),message=$("#formMessage");const getItems=()=>window.CMSStore.getContent()[activeCollection]||[];const setMessage=(text,type="")=>{message.textContent=text;message.dataset.type=type};const setVisibleFields=()=>{const visible=new Set(fieldSets[activeCollection]);$$('[data-field]').forEach((field)=>{field.hidden=!visible.has(field.dataset.field)})};const resetForm=()=>{editingItem=null;form.reset();$("#contentId").value="";$("#publishedInput").checked=true;$("#accentInput").value="red";$("#imageInput").value="";$("#backgroundInput").value="linear-gradient(135deg, #edf4ff, #ffffff)";$("#displayStatusInput").value="可對外展示";setMessage("")};const fillForm=(item)=>{editingItem=item;$("#contentId").value=item.id;$("#titleInput").value=item.title||"";$("#shortNameInput").value=item.shortName||"";$("#typeInput").value=item.type||"";$("#accentInput").value=item.accent||"red";$("#displayStatusInput").value=item.displayStatus||"";$("#logoInput").value=item.logo||"";$("#urlInput").value=item.url||"";$("#imageInput").value=item.image||"";$("#summaryInput").value=item.summary||"";$("#tagsInput").value=(item.tags||[]).join(", ");$("#participantsInput").value=(item.participants||[]).join(", ");$("#backgroundInput").value=item.background||"";$("#featuredInput").checked=Boolean(item.featured);$("#publishedInput").checked=Boolean(item.published);setMessage(`正在編輯：${item.title}`)};const buildPayload=()=>{const payload={id:$("#contentId").value||undefined,title:$("#titleInput").value,summary:$("#summaryInput").value.trim(),published:$("#publishedInput").checked};if(activeCollection==="companies"){payload.shortName=$("#shortNameInput").value.trim();payload.logo=$("#logoInput").value.trim();payload.url=$("#urlInput").value.trim();payload.tags=window.CMSStore.splitList($("#tagsInput").value)}if(activeCollection==="solutions"){payload.accent=$("#accentInput").value;payload.image=$("#imageInput").value.trim();payload.participants=window.CMSStore.splitList($("#participantsInput").value)}if(activeCollection==="cases"){payload.type=$("#typeInput").value.trim();payload.displayStatus=$("#displayStatusInput").value.trim();payload.participants=window.CMSStore.splitList($("#participantsInput").value);payload.background=$("#backgroundInput").value.trim();payload.featured=$("#featuredInput").checked}return payload};const renderSummary=(items)=>{$("#adminTitle").textContent=labels[activeCollection];$("#adminSummary").textContent=`已發布 ${items.filter(i=>i.published).length} · 草稿 ${items.filter(i=>!i.published).length} · 全部 ${items.length}`};const renderRows=()=>{const items=getItems();renderSummary(items);rows.innerHTML=items.map((item)=>{const meta=activeCollection==="companies"?(item.tags||[]).join(", "):activeCollection==="solutions"?(item.participants||[]).join(", "):`${item.type||"案例"} · ${(item.participants||[]).join(", ")}`;return `<div class="admin-row" role="row" data-id="${escapeHtml(item.id)}"><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.summary)}</small></span><span>${escapeHtml(meta||"尚未設定")}</span><span class="status ${item.published?"published":"draft"}">${item.published?"已發布":"草稿"}</span><span class="row-actions"><button type="button" data-action="edit" data-id="${escapeHtml(item.id)}">編輯</button><button type="button" data-action="toggle" data-id="${escapeHtml(item.id)}">${item.published?"下架":"發布"}</button></span></div>`}).join("")};const setActiveCollection=(collection)=>{activeCollection=collection;$$('.admin-menu button').forEach((b)=>b.classList.toggle("active",b.dataset.collection===collection));setVisibleFields();resetForm();renderRows()};$$('.admin-menu button').forEach((b)=>b.addEventListener("click",()=>setActiveCollection(b.dataset.collection)));$("#newContentButton").addEventListener("click",resetForm);$("#cancelEditButton").addEventListener("click",resetForm);rows.addEventListener("click",(event)=>{const button=event.target.closest("button[data-action]");if(!button)return;const item=getItems().find((entry)=>entry.id===button.dataset.id);if(!item)return;if(button.dataset.action==="edit")fillForm(item);if(button.dataset.action==="toggle"){window.CMSStore.togglePublished(activeCollection,item.id);renderRows();setMessage(`${item.title} 已${item.published?"下架":"發布"}。`,"success")}});form.addEventListener("submit",(event)=>{event.preventDefault();try{const payload=buildPayload();if(activeCollection==="cases"&&payload.featured){const content=window.CMSStore.getContent();content.cases=content.cases.map((item)=>item.id===payload.id?item:{...item,featured:false});window.CMSStore.saveContent(content)}window.CMSStore.upsertItem(activeCollection,payload);const savedTitle=payload.title.trim();resetForm();renderRows();setMessage(`${savedTitle} 已儲存。前台會讀取已發布內容。`,"success")}catch(error){setMessage(error.message||"儲存失敗，請再試一次。","error")}});setActiveCollection(activeCollection);
+(function () {
+  const labels = {
+    companies: "公司資料",
+    solutions: "解決方案",
+    cases: "合作案例",
+    contacts: "聯絡我們",
+  };
+
+  const fieldSets = {
+    companies: ["shortName", "logo", "url", "tags"],
+    solutions: ["accent", "participants", "image"],
+    cases: ["type", "displayStatus", "participants", "background", "featured"],
+    contacts: ["email", "department"],
+  };
+
+  let activeCollection = "companies";
+  let editingItem = null;
+  let cmsInitialized = false;
+
+  const $ = (selector) => document.querySelector(selector);
+  const $$ = (selector) => [...document.querySelectorAll(selector)];
+
+  const escapeHtml = (value) =>
+    String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+
+  const setMessage = (element, text, type = "") => {
+    element.textContent = text;
+    element.dataset.type = type;
+  };
+
+  const renderAccountRows = () => {
+    const currentUser = window.AdminAuth.getSession();
+    const rows = $("#accountRows");
+    rows.innerHTML = window.AdminAuth.getUsers()
+      .map(
+        (user) => `
+          <div class="account-row">
+            <span>
+              <strong>${escapeHtml(user.name)}</strong>
+              <small>${escapeHtml(user.email)} · ${escapeHtml(window.AdminAuth.roles[user.role])}</small>
+            </span>
+            <span class="status ${user.active ? "published" : "draft"}">${user.active ? "啟用" : "停用"}</span>
+            <button
+              type="button"
+              data-user-action="toggle"
+              data-user-id="${escapeHtml(user.id)}"
+              ${user.id === currentUser?.id ? "disabled" : ""}
+            >${user.active ? "停用" : "啟用"}</button>
+          </div>
+        `,
+      )
+      .join("");
+  };
+
+  const openAccountDialog = () => {
+    renderAccountRows();
+    setMessage($("#accountMessage"), "");
+    $("#accountDialog").showModal();
+  };
+
+  const showAdmin = (user) => {
+    $("#authGate").hidden = true;
+    $("#adminApp").hidden = false;
+    $("#currentUserLabel").textContent = `${user.name} · ${window.AdminAuth.roles[user.role]}`;
+    $("#manageUsersButton").hidden = user.role !== "admin";
+    if (!cmsInitialized) initCMS();
+  };
+
+  const showAuthGate = () => {
+    const users = window.AdminAuth.getUsers();
+    const isSetup = users.length === 0;
+    $("#authGate").hidden = false;
+    $("#adminApp").hidden = true;
+    $("#authNameField").hidden = !isSetup;
+    $("#authNameInput").required = isSetup;
+    $("#authPasswordInput").autocomplete = isSetup ? "new-password" : "current-password";
+    $("#authTitle").textContent = isSetup ? "建立第一位管理員" : "後台登入";
+    $("#authDescription").textContent = isSetup
+      ? "首次使用請建立管理員帳號。密碼只保存在這個瀏覽器。"
+      : "請使用管理帳號登入後台。";
+    $("#authSubmitButton").textContent = isSetup ? "建立管理員並進入" : "登入";
+    $("#authForm").reset();
+    setMessage($("#authMessage"), "");
+  };
+
+  $("#authForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const users = window.AdminAuth.getUsers();
+    const isSetup = users.length === 0;
+    const authMessage = $("#authMessage");
+    try {
+      const user = isSetup
+        ? await window.AdminAuth.createUser(
+            {
+              name: $("#authNameInput").value,
+              email: $("#authEmailInput").value,
+              password: $("#authPasswordInput").value,
+              role: "admin",
+            },
+            { loginAfterCreate: true },
+          )
+        : await window.AdminAuth.login($("#authEmailInput").value, $("#authPasswordInput").value);
+      showAdmin(user);
+    } catch (error) {
+      setMessage(authMessage, error.message || "登入失敗，請再試一次。", "error");
+    }
+  });
+
+  $("#logoutButton").addEventListener("click", () => {
+    window.AdminAuth.logout();
+    showAuthGate();
+  });
+
+  $("#manageUsersButton").addEventListener("click", openAccountDialog);
+  $("#closeAccountDialogButton").addEventListener("click", () => $("#accountDialog").close());
+
+  $("#accountForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const accountForm = event.currentTarget;
+    const accountMessage = $("#accountMessage");
+    try {
+      await window.AdminAuth.createUser({
+        name: $("#accountNameInput").value,
+        email: $("#accountEmailInput").value,
+        password: $("#accountPasswordInput").value,
+        role: $("#accountRoleInput").value,
+      });
+      accountForm.reset();
+      renderAccountRows();
+      setMessage(accountMessage, "帳號已建立。", "success");
+    } catch (error) {
+      setMessage(accountMessage, error.message || "帳號建立失敗。", "error");
+    }
+  });
+
+  $("#accountRows").addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-user-action]");
+    if (!button) return;
+    try {
+      window.AdminAuth.toggleUser(button.dataset.userId);
+      renderAccountRows();
+    } catch (error) {
+      setMessage($("#accountMessage"), error.message || "權限更新失敗。", "error");
+    }
+  });
+
+  const initCMS = () => {
+    cmsInitialized = true;
+    const form = $("#contentForm");
+    const rows = $("#contentRows");
+    const message = $("#formMessage");
+
+    const getItems = () => window.CMSStore.getContent()[activeCollection] || [];
+
+    const setVisibleFields = () => {
+      const visible = new Set(fieldSets[activeCollection]);
+      $$("[data-field]").forEach((field) => {
+        field.hidden = !visible.has(field.dataset.field);
+      });
+      $("#summaryLabel").textContent = activeCollection === "contacts" ? "備註" : "摘要";
+      $("#publishedLabel").textContent = activeCollection === "contacts" ? "顯示在前台" : "發布到前台";
+      $("#titleInput").closest("label").querySelector("span").textContent =
+        activeCollection === "contacts" ? "顯示名稱" : "標題";
+    };
+
+    const resetForm = () => {
+      editingItem = null;
+      form.reset();
+      $("#contentId").value = "";
+      $("#publishedInput").checked = true;
+      $("#accentInput").value = "red";
+      $("#imageInput").value = "";
+      $("#backgroundInput").value = "linear-gradient(135deg, #edf4ff, #ffffff)";
+      $("#displayStatusInput").value = "可對外展示";
+      setMessage(message, "");
+    };
+
+    const fillForm = (item) => {
+      editingItem = item;
+      $("#contentId").value = item.id;
+      $("#titleInput").value = item.title || "";
+      $("#shortNameInput").value = item.shortName || "";
+      $("#typeInput").value = item.type || "";
+      $("#accentInput").value = item.accent || "red";
+      $("#displayStatusInput").value = item.displayStatus || "";
+      $("#emailInput").value = item.email || "";
+      $("#departmentInput").value = item.department || "";
+      $("#logoInput").value = item.logo || "";
+      $("#urlInput").value = item.url || "";
+      $("#imageInput").value = item.image || "";
+      $("#summaryInput").value = item.summary || "";
+      $("#tagsInput").value = (item.tags || []).join(", ");
+      $("#participantsInput").value = (item.participants || []).join(", ");
+      $("#backgroundInput").value = item.background || "";
+      $("#featuredInput").checked = Boolean(item.featured);
+      $("#publishedInput").checked = Boolean(item.published);
+      setMessage(message, `正在編輯：${item.title}`);
+    };
+
+    const buildPayload = () => {
+      const payload = {
+        id: $("#contentId").value || undefined,
+        title: $("#titleInput").value,
+        summary: $("#summaryInput").value.trim(),
+        published: $("#publishedInput").checked,
+      };
+
+      if (activeCollection === "companies") {
+        payload.shortName = $("#shortNameInput").value.trim();
+        payload.logo = $("#logoInput").value.trim();
+        payload.url = $("#urlInput").value.trim();
+        payload.tags = window.CMSStore.splitList($("#tagsInput").value);
+      }
+
+      if (activeCollection === "solutions") {
+        payload.accent = $("#accentInput").value;
+        payload.image = $("#imageInput").value.trim();
+        payload.participants = window.CMSStore.splitList($("#participantsInput").value);
+      }
+
+      if (activeCollection === "cases") {
+        payload.type = $("#typeInput").value.trim();
+        payload.displayStatus = $("#displayStatusInput").value.trim();
+        payload.participants = window.CMSStore.splitList($("#participantsInput").value);
+        payload.background = $("#backgroundInput").value.trim();
+        payload.featured = $("#featuredInput").checked;
+      }
+
+      if (activeCollection === "contacts") {
+        payload.email = $("#emailInput").value.trim();
+        payload.department = $("#departmentInput").value.trim();
+      }
+
+      return payload;
+    };
+
+    const renderSummary = (items) => {
+      const published = items.filter((item) => item.published).length;
+      $("#adminTitle").textContent = labels[activeCollection];
+      $("#adminSummary").textContent = `已發布 ${published} · 草稿 ${items.length - published} · 全部 ${items.length}`;
+    };
+
+    const renderRows = () => {
+      const items = getItems();
+      renderSummary(items);
+
+      rows.innerHTML = items
+        .map((item) => {
+          const meta =
+            activeCollection === "companies"
+              ? (item.tags || []).join(", ")
+              : activeCollection === "solutions"
+                ? (item.participants || []).join(", ")
+                : activeCollection === "cases"
+                  ? `${item.type || "案例"} · ${(item.participants || []).join(", ")}`
+                  : `${item.department || "一般聯絡"} · ${item.email || ""}`;
+
+          return `
+            <div class="admin-row" role="row" data-id="${escapeHtml(item.id)}">
+              <span>
+                <strong>${escapeHtml(item.title)}</strong>
+                <small>${escapeHtml(item.summary)}</small>
+              </span>
+              <span>${escapeHtml(meta || "尚未設定")}</span>
+              <span class="status ${item.published ? "published" : "draft"}">${item.published ? "已發布" : "草稿"}</span>
+              <span class="row-actions">
+                <button type="button" data-action="edit" data-id="${escapeHtml(item.id)}">編輯</button>
+                <button type="button" data-action="toggle" data-id="${escapeHtml(item.id)}">${item.published ? "下架" : "發布"}</button>
+              </span>
+            </div>
+          `;
+        })
+        .join("");
+    };
+
+    const setActiveCollection = (collection) => {
+      activeCollection = collection;
+      $$(".admin-menu button[data-collection]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.collection === collection);
+      });
+      setVisibleFields();
+      resetForm();
+      renderRows();
+    };
+
+    $$(".admin-menu button[data-collection]").forEach((button) => {
+      button.addEventListener("click", () => setActiveCollection(button.dataset.collection));
+    });
+
+    $("#newContentButton").addEventListener("click", resetForm);
+    $("#cancelEditButton").addEventListener("click", resetForm);
+
+    rows.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+
+      const item = getItems().find((entry) => entry.id === button.dataset.id);
+      if (!item) return;
+
+      if (button.dataset.action === "edit") fillForm(item);
+
+      if (button.dataset.action === "toggle") {
+        window.CMSStore.togglePublished(activeCollection, item.id);
+        renderRows();
+        setMessage(message, `${item.title} 已${item.published ? "下架" : "發布"}。`, "success");
+      }
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      try {
+        const payload = buildPayload();
+        if (activeCollection === "cases" && payload.featured) {
+          const content = window.CMSStore.getContent();
+          content.cases = content.cases.map((item) =>
+            item.id === payload.id ? item : { ...item, featured: false },
+          );
+          window.CMSStore.saveContent(content);
+        }
+        window.CMSStore.upsertItem(activeCollection, payload);
+        const savedTitle = payload.title.trim();
+        resetForm();
+        renderRows();
+        setMessage(message, `${savedTitle} 已儲存。前台會讀取已發布內容。`, "success");
+      } catch (error) {
+        setMessage(message, error.message || "儲存失敗，請再試一次。", "error");
+      }
+    });
+
+    setActiveCollection(activeCollection);
+  };
+
+  const session = window.AdminAuth.getSession();
+  if (session) showAdmin(session);
+  else showAuthGate();
+})();

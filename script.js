@@ -37,11 +37,12 @@ const solutionVisuals = {
 const renderFrontPage = () => {
   if (!window.CMSStore) return;
 
-  const { companies, solutions, cases } = window.CMSStore.getPublished();
+  const { companies, solutions, cases, contacts } = window.CMSStore.getPublished();
   const companyMatrix = document.querySelector("#companyMatrix");
   const companyLinks = document.querySelector("#companyLinks");
   const solutionGrid = document.querySelector("#solutionGrid");
   const caseLayout = document.querySelector("#caseLayout");
+  const contactLinks = document.querySelector("#contactLinks");
 
   if (companyMatrix) {
     companyMatrix.innerHTML = companies
@@ -124,6 +125,20 @@ const renderFrontPage = () => {
         </div>
       `
       : `<div class="empty-state">目前沒有已發布的合作案例。</div>`;
+  }
+
+  if (contactLinks) {
+    contactLinks.innerHTML = contacts
+      .map(
+        (contact) => `
+          <a class="contact-email" href="mailto:${escapeHtml(contact.email)}">
+            <strong>${escapeHtml(contact.title)}</strong>
+            <span>${escapeHtml(contact.email)}</span>
+          </a>
+        `,
+      )
+      .join("");
+    contactLinks.hidden = contacts.length === 0;
   }
 
   bindCardHover();

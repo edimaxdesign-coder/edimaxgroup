@@ -1,9 +1,14 @@
 (function () {
   const STORAGE_KEY = "edimax-group-cms-content-v1";
-  const COLLECTIONS = ["companies", "solutions", "cases"];
+  const COLLECTIONS = ["companies", "solutions", "cases", "contacts"];
 
   const clone = (value) => JSON.parse(JSON.stringify(value));
-  const seed = () => clone(window.CMS_SEED_DATA || {});
+  const seed = () =>
+    clone({
+      ...(window.CMS_SEED_DATA || {}),
+      ...(window.CMS_CONTACT_SEED_DATA || {}),
+    });
+
   const normalizeItems = (items) => (Array.isArray(items) ? items : []);
 
   const normalizeContent = (content) => {
@@ -42,7 +47,12 @@
   };
 
   const slugify = (text) =>
-    String(text || "item").trim().toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "item";
+    String(text || "item")
+      .trim()
+      .toLowerCase()
+      .replace(/[^\w\u4e00-\u9fa5]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40) || "item";
 
   const uniqueId = (collection, title, existingItems) => {
     const base = `${collection.slice(0, -1)}-${slugify(title)}`;
@@ -53,8 +63,21 @@
     return `${base}-${index}`;
   };
 
-  const splitList = (text) => String(text || "").split(",").map((item) => item.trim()).filter(Boolean);
-  const findDuplicateTitle = (items, title, currentId) => items.some((item) => item.id !== currentId && item.title.trim() === title.trim());
+  const splitList = (text) =>
+    String(text || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+  const findDuplicateTitle = (items, title, currentId) =>
+    items.some((item) => item.id !== currentId && item.title.trim() === title.trim());
+
+  const findDuplicateEmail = (items, email, currentId) =>
+    items.some(
+      (item) =>
+        item.id !== currentId &&
+        String(item.email || "").trim().toLowerCase() === String(email || "").trim().toLowerCase(),
+    );
 
   const upsertItem = (collection, payload) => {
     const content = getContent();
@@ -62,24 +85,52 @@
     const title = String(payload.title || "").trim();
     if (!title) throw new Error("請先輸入標題。");
     if (findDuplicateTitle(items, title, payload.id)) throw new Error("已有相同標題，請改用編輯既有內容。");
+    if (collection === "contacts") {
+      const email = String(payload.email || "").trim().toLowerCase();
+      if (!email || !email.includes("@")) throw new Error("請輸入有效的 Email。");
+      if (findDuplicateEmail(items, email, payload.id)) throw new Error("此 Email 已經建立，請改用編輯既有資料。");
+      payload.email = email;
+    }
+
     const existing = items.find((item) => item.id === payload.id);
-    const nextItem = { ...(existing || {}), ...payload, id: existing ? existing.id : uniqueId(collection, title, items), title };
-    content[collection] = existing ? items.map((item) => (item.id === existing.id ? nextItem : item)) : [...items, nextItem];
+    const nextItem = {
+      ...(existing || {}),
+      ...payload,
+      id: existing ? existing.id : uniqueId(collection, title, items),
+      title,
+    };
+
+    content[collection] = existing
+      ? items.map((item) => (item.id === existing.id ? nextItem : item))
+      : [...items, nextItem];
+
     return saveContent(content);
   };
 
   const togglePublished = (collection, id) => {
     const content = getContent();
-    content[collection] = normalizeItems(content[collection]).map((item) => item.id === id ? { ...item, published: !item.published } : item);
+    content[collection] = normalizeItems(content[collection]).map((item) =>
+      item.id === id ? { ...item, published: !item.published } : item,
+    );
     return saveContent(content);
   };
 
   const getPublished = () => {
     const content = getContent();
     const published = {};
-    COLLECTIONS.forEach((collection) => { published[collection] = normalizeItems(content[collection]).filter((item) => item.published); });
+    COLLECTIONS.forEach((collection) => {
+      published[collection] = normalizeItems(content[collection]).filter((item) => item.published);
+    });
     return published;
   };
 
-  window.CMSStore = { collections: COLLECTIONS, getContent, getPublished, saveContent, upsertItem, togglePublished, splitList };
+  window.CMSStore = {
+    collections: COLLECTIONS,
+    getContent,
+    getPublished,
+    saveContent,
+    upsertItem,
+    togglePublished,
+    splitList,
+  };
 })();

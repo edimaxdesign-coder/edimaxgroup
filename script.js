@@ -128,17 +128,18 @@ const renderFrontPage = () => {
   }
 
   if (contactLinks) {
-    contactLinks.innerHTML = contacts
-      .map(
-        (contact) => `
-          <a class="contact-email" href="mailto:${escapeHtml(contact.email)}">
-            <strong>${escapeHtml(contact.title)}</strong>
-            <span>${escapeHtml(contact.email)}</span>
-          </a>
-        `,
-      )
-      .join("");
-    contactLinks.hidden = contacts.length === 0;
+    const contactEmails = [
+      ...new Set(
+        contacts
+          .map((contact) => contact.email?.trim().toLowerCase())
+          .filter(Boolean),
+      ),
+    ];
+
+    contactLinks.innerHTML = contactEmails.length
+      ? `<a class="contact-button primary-button" href="mailto:${escapeHtml(contactEmails.join(","))}">聯絡我們</a>`
+      : "";
+    contactLinks.hidden = contactEmails.length === 0;
   }
 
   bindCardHover();

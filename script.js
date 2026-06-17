@@ -91,17 +91,17 @@ const renderFrontPage = () => {
     companyMatrix.innerHTML = companies
       .map(
         (company) => {
-          const websiteLink = company.url
-            ? `<a class="company-website" href="${escapeHtml(company.url)}" target="_blank" rel="noreferrer">前往官網</a>`
+          const tagName = company.url ? "a" : "article";
+          const linkAttrs = company.url
+            ? ` href="${escapeHtml(company.url)}" target="_blank" rel="noreferrer" aria-label="前往 ${escapeHtml(company.title)} 官網"`
             : "";
 
           return `
-          <article class="company-card">
+          <${tagName} class="company-card${company.url ? " linked" : ""}"${linkAttrs}>
             <h3>${escapeHtml(company.title)}</h3>
             <p>${escapeHtml(company.summary)}</p>
             <div class="tag-row">${renderTags(company.tags)}</div>
-            ${websiteLink}
-          </article>
+          </${tagName}>
         `;
         },
       )

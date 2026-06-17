@@ -90,14 +90,13 @@ const renderFrontPage = () => {
   if (companyMatrix) {
     companyMatrix.innerHTML = companies
       .map(
-        (company, index) => {
+        (company) => {
           const websiteLink = company.url
             ? `<a class="company-website" href="${escapeHtml(company.url)}" target="_blank" rel="noreferrer">前往官網</a>`
             : "";
 
           return `
           <article class="company-card">
-            <span class="company-index">${String(index + 1).padStart(2, "0")}</span>
             <h3>${escapeHtml(company.title)}</h3>
             <p>${escapeHtml(company.summary)}</p>
             <div class="tag-row">${renderTags(company.tags)}</div>

@@ -289,16 +289,8 @@ h1 {
   background: linear-gradient(135deg, #ffffff, #fff1f2);
 }
 
-.company-card.featured p,
-.company-card.featured .company-index {
+.company-card.featured p {
   color: var(--muted);
-}
-
-.company-index {
-  display: block;
-  margin-bottom: 28px;
-  color: var(--brand-red);
-  font-weight: 800;
 }
 
 .company-card h3 {

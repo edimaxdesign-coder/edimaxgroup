@@ -261,6 +261,12 @@ h1 {
   gap: 16px;
 }
 
+.matrix-block {
+  margin-top: 34px;
+  padding-top: 34px;
+  border-top: 1px solid var(--line);
+}
+
 .company-card,
 .solution-card,
 .case-card {
@@ -318,6 +324,11 @@ h1 {
   font-weight: 700;
 }
 
+.tag-row.light span {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+}
+
 .featured .tag-row span {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.16);
@@ -325,8 +336,8 @@ h1 {
 
 .solution-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
   margin-top: 32px;
 }
 
@@ -334,7 +345,9 @@ h1 {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  min-height: 300px;
+  display: grid;
+  align-content: space-between;
+  min-height: 520px;
   padding: 24px;
   color: #ffffff;
   background:
@@ -384,9 +397,8 @@ h1 {
 }
 
 .solution-card h3 {
-  min-height: 58px;
   margin-bottom: 12px;
-  font-size: 21px;
+  font-size: 25px;
   line-height: 1.35;
 }
 
@@ -395,13 +407,70 @@ h1 {
   line-height: 1.75;
 }
 
+.solution-card-main {
+  max-width: 680px;
+}
+
+.solution-detail {
+  display: grid;
+  gap: 18px;
+  margin-top: 30px;
+}
+
+.solution-detail strong,
+.related-cases > strong {
+  display: block;
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+}
+
 .participants {
-  margin-top: 20px;
+  margin-top: 0;
   padding-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.22);
   color: #ffffff;
   font-size: 13px;
   font-weight: 800;
+}
+
+.related-cases {
+  display: grid;
+  gap: 10px;
+}
+
+.related-cases.empty {
+  padding: 12px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.related-case {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.related-case span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.related-case b {
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.related-case small {
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.6;
 }
 
 .case-layout {
@@ -499,11 +568,11 @@ h1 {
 .company-links > span {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 12px;
-  min-height: 132px;
-  padding: 18px 12px;
+  min-height: 210px;
+  padding: 20px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #ffffff;
@@ -518,8 +587,14 @@ h1 {
 .company-links small {
   color: var(--muted);
   font-size: 13px;
-  font-weight: 700;
-  text-align: center;
+  font-weight: 800;
+}
+
+.company-links a > span,
+.company-links > span > span {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 .brand-wordmark {

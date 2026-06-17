@@ -1,5 +1,6 @@
 (function () {
   const labels = {
+    pageSettings: "首頁設定",
     companies: "公司資料",
     solutions: "解決方案",
     cases: "合作案例",
@@ -7,13 +8,37 @@
   };
 
   const fieldSets = {
+    pageSettings: [
+      "eyebrow",
+      "primaryCtaLabel",
+      "primaryCtaHref",
+      "secondaryCtaLabel",
+      "secondaryCtaHref",
+      "companiesEyebrow",
+      "companiesTitle",
+      "companiesSummary",
+      "solutionsEyebrow",
+      "solutionsTitle",
+      "solutionsSummary",
+      "contactEyebrow",
+      "contactTitle",
+    ],
     companies: ["shortName", "logo", "url", "tags"],
-    solutions: ["accent", "participants", "image"],
-    cases: ["type", "displayStatus", "participants", "background", "featured"],
+    solutions: ["accent", "scenarios", "capabilities", "participants", "relatedCases", "image"],
+    cases: [
+      "type",
+      "displayStatus",
+      "participants",
+      "relatedSolutions",
+      "background",
+      "featured",
+      "publicVisible",
+      "anonymous",
+    ],
     contacts: ["email", "department"],
   };
 
-  let activeCollection = "companies";
+  let activeCollection = "pageSettings";
   let editingItem = null;
   let cmsInitialized = false;
 
@@ -162,10 +187,21 @@
       $$("[data-field]").forEach((field) => {
         field.hidden = !visible.has(field.dataset.field);
       });
-      $("#summaryLabel").textContent = activeCollection === "contacts" ? "備註" : "摘要";
-      $("#publishedLabel").textContent = activeCollection === "contacts" ? "顯示在前台" : "發布到前台";
+      $("#summaryLabel").textContent =
+        activeCollection === "pageSettings"
+          ? "Hero 說明"
+          : activeCollection === "contacts"
+            ? "備註"
+            : "摘要";
+      $("#publishedLabel").textContent =
+        activeCollection === "contacts" || activeCollection === "pageSettings" ? "顯示在前台" : "發布到前台";
       $("#titleInput").closest("label").querySelector("span").textContent =
-        activeCollection === "contacts" ? "顯示名稱" : "標題";
+        activeCollection === "pageSettings"
+          ? "Hero 標題"
+          : activeCollection === "contacts"
+            ? "顯示名稱"
+            : "標題";
+      $("#newContentButton").hidden = activeCollection === "pageSettings";
     };
 
     const resetForm = () => {
@@ -177,6 +213,12 @@
       $("#imageInput").value = "";
       $("#backgroundInput").value = "linear-gradient(135deg, #edf4ff, #ffffff)";
       $("#displayStatusInput").value = "可對外展示";
+      $("#publicVisibleInput").checked = true;
+      $("#anonymousInput").checked = true;
+      if (activeCollection === "pageSettings") {
+        const homeSettings = getItems()[0];
+        if (homeSettings) fillForm(homeSettings);
+      }
       setMessage(message, "");
     };
 
@@ -184,10 +226,15 @@
       editingItem = item;
       $("#contentId").value = item.id;
       $("#titleInput").value = item.title || "";
+      $("#eyebrowInput").value = item.eyebrow || "";
       $("#shortNameInput").value = item.shortName || "";
       $("#typeInput").value = item.type || "";
       $("#accentInput").value = item.accent || "red";
       $("#displayStatusInput").value = item.displayStatus || "";
+      $("#primaryCtaLabelInput").value = item.primaryCtaLabel || "";
+      $("#primaryCtaHrefInput").value = item.primaryCtaHref || "";
+      $("#secondaryCtaLabelInput").value = item.secondaryCtaLabel || "";
+      $("#secondaryCtaHrefInput").value = item.secondaryCtaHref || "";
       $("#emailInput").value = item.email || "";
       $("#departmentInput").value = item.department || "";
       $("#logoInput").value = item.logo || "";
@@ -195,9 +242,23 @@
       $("#imageInput").value = item.image || "";
       $("#summaryInput").value = item.summary || "";
       $("#tagsInput").value = (item.tags || []).join(", ");
+      $("#scenariosInput").value = (item.scenarios || []).join(", ");
+      $("#capabilitiesInput").value = (item.capabilities || []).join(", ");
       $("#participantsInput").value = (item.participants || []).join(", ");
+      $("#relatedCasesInput").value = (item.relatedCases || []).join(", ");
+      $("#relatedSolutionsInput").value = (item.relatedSolutions || []).join(", ");
       $("#backgroundInput").value = item.background || "";
       $("#featuredInput").checked = Boolean(item.featured);
+      $("#publicVisibleInput").checked = item.publicVisible !== false;
+      $("#anonymousInput").checked = item.anonymous !== false;
+      $("#companiesEyebrowInput").value = item.companiesEyebrow || "";
+      $("#companiesTitleInput").value = item.companiesTitle || "";
+      $("#companiesSummaryInput").value = item.companiesSummary || "";
+      $("#solutionsEyebrowInput").value = item.solutionsEyebrow || "";
+      $("#solutionsTitleInput").value = item.solutionsTitle || "";
+      $("#solutionsSummaryInput").value = item.solutionsSummary || "";
+      $("#contactEyebrowInput").value = item.contactEyebrow || "";
+      $("#contactTitleInput").value = item.contactTitle || "";
       $("#publishedInput").checked = Boolean(item.published);
       setMessage(message, `正在編輯：${item.title}`);
     };
@@ -210,6 +271,23 @@
         published: $("#publishedInput").checked,
       };
 
+      if (activeCollection === "pageSettings") {
+        payload.id = "page-home";
+        payload.eyebrow = $("#eyebrowInput").value.trim();
+        payload.primaryCtaLabel = $("#primaryCtaLabelInput").value.trim();
+        payload.primaryCtaHref = $("#primaryCtaHrefInput").value.trim();
+        payload.secondaryCtaLabel = $("#secondaryCtaLabelInput").value.trim();
+        payload.secondaryCtaHref = $("#secondaryCtaHrefInput").value.trim();
+        payload.companiesEyebrow = $("#companiesEyebrowInput").value.trim();
+        payload.companiesTitle = $("#companiesTitleInput").value.trim();
+        payload.companiesSummary = $("#companiesSummaryInput").value.trim();
+        payload.solutionsEyebrow = $("#solutionsEyebrowInput").value.trim();
+        payload.solutionsTitle = $("#solutionsTitleInput").value.trim();
+        payload.solutionsSummary = $("#solutionsSummaryInput").value.trim();
+        payload.contactEyebrow = $("#contactEyebrowInput").value.trim();
+        payload.contactTitle = $("#contactTitleInput").value.trim();
+      }
+
       if (activeCollection === "companies") {
         payload.shortName = $("#shortNameInput").value.trim();
         payload.logo = $("#logoInput").value.trim();
@@ -220,15 +298,21 @@
       if (activeCollection === "solutions") {
         payload.accent = $("#accentInput").value;
         payload.image = $("#imageInput").value.trim();
+        payload.scenarios = window.CMSStore.splitList($("#scenariosInput").value);
+        payload.capabilities = window.CMSStore.splitList($("#capabilitiesInput").value);
         payload.participants = window.CMSStore.splitList($("#participantsInput").value);
+        payload.relatedCases = window.CMSStore.splitList($("#relatedCasesInput").value);
       }
 
       if (activeCollection === "cases") {
         payload.type = $("#typeInput").value.trim();
         payload.displayStatus = $("#displayStatusInput").value.trim();
         payload.participants = window.CMSStore.splitList($("#participantsInput").value);
+        payload.relatedSolutions = window.CMSStore.splitList($("#relatedSolutionsInput").value);
         payload.background = $("#backgroundInput").value.trim();
         payload.featured = $("#featuredInput").checked;
+        payload.publicVisible = $("#publicVisibleInput").checked;
+        payload.anonymous = $("#anonymousInput").checked;
       }
 
       if (activeCollection === "contacts") {
@@ -242,7 +326,10 @@
     const renderSummary = (items) => {
       const published = items.filter((item) => item.published).length;
       $("#adminTitle").textContent = labels[activeCollection];
-      $("#adminSummary").textContent = `已發布 ${published} · 草稿 ${items.length - published} · 全部 ${items.length}`;
+      $("#adminSummary").textContent =
+        activeCollection === "pageSettings"
+          ? "首頁固定文案、CTA 與各區標題"
+          : `已發布 ${published} · 草稿 ${items.length - published} · 全部 ${items.length}`;
     };
 
     const renderRows = () => {
@@ -252,12 +339,14 @@
       rows.innerHTML = items
         .map((item) => {
           const meta =
-            activeCollection === "companies"
+            activeCollection === "pageSettings"
+              ? "Hero、區塊標題、CTA"
+              : activeCollection === "companies"
               ? (item.tags || []).join(", ")
               : activeCollection === "solutions"
-                ? (item.participants || []).join(", ")
+                ? `${(item.scenarios || []).join(", ")} · ${(item.participants || []).join(", ")}`
                 : activeCollection === "cases"
-                  ? `${item.type || "案例"} · ${(item.participants || []).join(", ")}`
+                  ? `${item.type || "案例"} · ${item.publicVisible === false ? "不公開" : "可公開"} · ${(item.participants || []).join(", ")}`
                   : `${item.department || "一般聯絡"} · ${item.email || ""}`;
 
           return `
@@ -270,7 +359,11 @@
               <span class="status ${item.published ? "published" : "draft"}">${item.published ? "已發布" : "草稿"}</span>
               <span class="row-actions">
                 <button type="button" data-action="edit" data-id="${escapeHtml(item.id)}">編輯</button>
-                <button type="button" data-action="toggle" data-id="${escapeHtml(item.id)}">${item.published ? "下架" : "發布"}</button>
+                ${
+                  activeCollection === "pageSettings"
+                    ? ""
+                    : `<button type="button" data-action="toggle" data-id="${escapeHtml(item.id)}">${item.published ? "下架" : "發布"}</button>`
+                }
               </span>
             </div>
           `;

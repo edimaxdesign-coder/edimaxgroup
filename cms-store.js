@@ -1,6 +1,6 @@
 (function () {
   const STORAGE_KEY = "edimax-group-cms-content-v1";
-  const COLLECTIONS = ["companies", "solutions", "cases", "contacts"];
+  const COLLECTIONS = ["pageSettings", "companies", "solutions", "cases", "contacts"];
 
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const seed = () =>
@@ -16,14 +16,11 @@
     COLLECTIONS.forEach((collection) => {
       const seedItems = normalizeItems(next[collection]);
       const incomingItems = normalizeItems(content && content[collection]);
-      const shouldRefreshSeedCopy = (content?.copyVersion || 0) < (next.copyVersion || 0);
       next[collection] = incomingItems.length
         ? incomingItems.map((item) => {
             const seedItem = seedItems.find((entry) => entry.id === item.id);
             if (!seedItem) return item;
-            return shouldRefreshSeedCopy
-              ? { ...item, ...seedItem, published: item.published }
-              : { ...seedItem, ...item };
+            return { ...seedItem, ...item };
           })
         : seedItems;
     });

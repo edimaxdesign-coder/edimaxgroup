@@ -16,6 +16,22 @@ const escapeHtml = (value) =>
 
 const renderTags = (tags = []) => tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("");
 
+const setText = (selector, value) => {
+  const element = document.querySelector(selector);
+  if (element && value) element.textContent = value;
+};
+
+const setLink = (selector, label, href) => {
+  const element = document.querySelector(selector);
+  if (!element) return;
+  if (label) element.textContent = label;
+  if (href) element.setAttribute("href", href);
+};
+
+const migrateDefaultText = (value, legacyValue, nextValue) => (value === legacyValue ? nextValue : value);
+
+const uniqueList = (items = []) => [...new Set(items.filter(Boolean))];
+
 const solutionImages = {
   "solution-smart-building": "images/solutions-pages/smart-building-network.jpg",
   "solution-broadband": "images/solutions-pages/broadband-communication.jpg",
@@ -37,12 +53,40 @@ const solutionVisuals = {
 const renderFrontPage = () => {
   if (!window.CMSStore) return;
 
+  const content = window.CMSStore.getContent();
   const { companies, solutions, cases, contacts } = window.CMSStore.getPublished();
+  const pageSettings = (content.pageSettings || [])[0] || {};
   const companyMatrix = document.querySelector("#companyMatrix");
   const companyLinks = document.querySelector("#companyLinks");
   const solutionGrid = document.querySelector("#solutionGrid");
-  const caseLayout = document.querySelector("#caseLayout");
   const contactLinks = document.querySelector("#contactLinks");
+
+  setText("#heroEyebrow", pageSettings.eyebrow);
+  setText("#heroTitle", pageSettings.title);
+  setText("#heroSummary", pageSettings.summary);
+  setLink("#primaryCta", pageSettings.primaryCtaLabel, pageSettings.primaryCtaHref);
+  setLink("#secondaryCta", pageSettings.secondaryCtaLabel, pageSettings.secondaryCtaHref);
+  setText(
+    "#companiesEyebrow",
+    migrateDefaultText(pageSettings.companiesEyebrow, "Group Companies", "Group Capabilities"),
+  );
+  setText(
+    "#companiesTitle",
+    migrateDefaultText(pageSettings.companiesTitle, "集團成員與角色定位", "集團成員與能力矩陣"),
+  );
+  setText(
+    "#companiesSummary",
+    migrateDefaultText(
+      pageSettings.companiesSummary,
+      "先認識各團隊負責的產品線與服務範圍，再依需求進一步查看能力矩陣與方案內容。",
+      "整合各公司角色、產品線與專業能力，讓客戶能快速判斷需求應由哪個團隊承接。",
+    ),
+  );
+  setText("#solutionsEyebrow", pageSettings.solutionsEyebrow);
+  setText("#solutionsTitle", pageSettings.solutionsTitle);
+  setText("#solutionsSummary", pageSettings.solutionsSummary);
+  setText("#contactEyebrow", pageSettings.contactEyebrow);
+  setText("#contactTitle", pageSettings.contactTitle);
 
   if (companyMatrix) {
     companyMatrix.innerHTML = companies
@@ -63,7 +107,11 @@ const renderFrontPage = () => {
     companyLinks.innerHTML = companies
       .map((company) => {
         const name = `<strong class="brand-wordmark">${escapeHtml(company.shortName || company.title)}</strong>`;
-        const body = `${name}<small>${escapeHtml((company.tags || []).slice(0, 2).join("與") || company.summary)}</small>`;
+        const body = `
+          ${name}
+          <small>${escapeHtml((company.tags || []).slice(0, 2).join("與") || company.summary)}</small>
+          <span>${escapeHtml(company.summary)}</span>
+        `;
         return company.url
           ? `<a href="${escapeHtml(company.url)}" target="_blank" rel="noreferrer" aria-label="${escapeHtml(company.shortName || company.title)}">${body}</a>`
           : `<span aria-label="${escapeHtml(company.shortName || company.title)}">${body}</span>`;
@@ -77,54 +125,56 @@ const renderFrontPage = () => {
         const image = solution.image || solutionImages[solution.id] || "";
         const visual = solutionVisuals[solution.id] || (image ? `url('${escapeHtml(image)}')` : "");
         const imageStyle = visual ? ` style="--solution-image: ${visual}"` : "";
+        const relatedCaseIds = uniqueList([
+          ...(solution.relatedCases || []),
+          ...cases
+            .filter((item) => (item.relatedSolutions || []).includes(solution.id))
+            .map((item) => item.id),
+        ]);
+        const relatedCases = relatedCaseIds
+          .map((caseId) => cases.find((item) => item.id === caseId && item.publicVisible !== false))
+          .filter(Boolean);
 
         return `
           <article class="solution-card"${imageStyle}>
-            <div class="solution-icon ${escapeHtml(solution.accent || "")}">${String(index + 1).padStart(2, "0")}</div>
-            <h3>${escapeHtml(solution.title)}</h3>
-            <p>${escapeHtml(solution.summary)}</p>
-            <div class="participants">${escapeHtml((solution.participants || []).join(" · "))}</div>
+            <div class="solution-card-main">
+              <div class="solution-icon ${escapeHtml(solution.accent || "")}">${String(index + 1).padStart(2, "0")}</div>
+              <h3>${escapeHtml(solution.title)}</h3>
+              <p>${escapeHtml(solution.summary)}</p>
+            </div>
+            <div class="solution-detail">
+              <div>
+                <strong>適用場景</strong>
+                <div class="tag-row light">${renderTags(solution.scenarios || [])}</div>
+              </div>
+              <div>
+                <strong>能力組合</strong>
+                <div class="tag-row light">${renderTags(solution.capabilities || [])}</div>
+              </div>
+              <div class="participants">參與公司：${escapeHtml((solution.participants || []).join(" · "))}</div>
+              ${
+                relatedCases.length
+                  ? `<div class="related-cases">
+                      <strong>導入實績</strong>
+                      ${relatedCases
+                        .map(
+                          (item) => `
+                            <div class="related-case">
+                              <span>${escapeHtml(item.type || "案例")}</span>
+                              <b>${escapeHtml(item.anonymous ? `${item.title}（匿名）` : item.title)}</b>
+                              <small>${escapeHtml(item.summary)}</small>
+                            </div>
+                          `,
+                        )
+                        .join("")}
+                    </div>`
+                  : `<div class="related-cases empty">目前尚未設定可公開案例。</div>`
+              }
+            </div>
           </article>
         `;
       })
       .join("");
-  }
-
-  if (caseLayout) {
-    const visibleCases = [...cases];
-    const featuredCase = visibleCases.find((item) => item.featured) || visibleCases[0];
-    const sideCases = visibleCases.filter((item) => item.id !== featuredCase?.id).slice(0, 3);
-
-    caseLayout.innerHTML = featuredCase
-      ? `
-        <article class="case-card large case-with-bg" style="--case-image: ${escapeHtml(featuredCase.background)}">
-          <div class="case-content">
-            <span class="case-type">${escapeHtml(featuredCase.type)}</span>
-            <h3>${escapeHtml(featuredCase.title)}</h3>
-            <p>${escapeHtml(featuredCase.summary)}</p>
-            <div class="case-meta">
-              <span>參與公司：${escapeHtml((featuredCase.participants || []).join(" / "))}</span>
-              <span>狀態：${escapeHtml(featuredCase.displayStatus || "可對外展示")}</span>
-            </div>
-          </div>
-        </article>
-        <div class="case-stack">
-          ${sideCases
-            .map(
-              (item) => `
-                <article class="case-card case-with-bg" style="--case-image: ${escapeHtml(item.background)}">
-                  <div class="case-content">
-                    <span class="case-type">${escapeHtml(item.type)}</span>
-                    <h3>${escapeHtml(item.title)}</h3>
-                    <p>${escapeHtml(item.summary)}</p>
-                  </div>
-                </article>
-              `,
-            )
-            .join("")}
-        </div>
-      `
-      : `<div class="empty-state">目前沒有已發布的合作案例。</div>`;
   }
 
   if (contactLinks) {
@@ -138,15 +188,15 @@ const renderFrontPage = () => {
 
     contactLinks.innerHTML = contactEmails.length
       ? `<a class="contact-button primary-button" href="mailto:${escapeHtml(contactEmails.join(","))}">聯絡我們</a>`
-      : "";
-    contactLinks.hidden = contactEmails.length === 0;
+      : `<a class="contact-button primary-button" href="https://www.edimax.com/edimax/form/contact_us/data/edimax/global/contact_us/" target="_blank" rel="noreferrer">聯絡我們</a>`;
+    contactLinks.hidden = false;
   }
 
   bindCardHover();
 };
 
 const bindCardHover = () => {
-  document.querySelectorAll(".company-card, .solution-card, .case-card").forEach((card) => {
+  document.querySelectorAll(".company-card, .solution-card").forEach((card) => {
     card.addEventListener("pointerenter", () => {
       card.style.transform = "translateY(-3px)";
       card.style.transition = "transform 180ms ease, border-color 180ms ease";

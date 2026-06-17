@@ -58,7 +58,8 @@
         <div class="admin-shell">
           <aside class="admin-menu" aria-label="內容分類">
             <strong>CMS</strong>
-            <button class="active" type="button" data-collection="companies">公司資料</button>
+            <button class="active" type="button" data-collection="pageSettings">首頁設定</button>
+            <button type="button" data-collection="companies">公司資料</button>
             <button type="button" data-collection="solutions">解決方案</button>
             <button type="button" data-collection="cases">合作案例</button>
             <button type="button" data-collection="contacts">聯絡我們</button>
@@ -84,6 +85,10 @@
                     <span>標題</span>
                     <input id="titleInput" type="text" required />
                   </label>
+                  <label data-field="eyebrow">
+                    <span>眉標</span>
+                    <input id="eyebrowInput" type="text" />
+                  </label>
                   <label data-field="shortName">
                     <span>短名稱</span>
                     <input id="shortNameInput" type="text" />
@@ -104,6 +109,22 @@
                   <label data-field="displayStatus">
                     <span>展示狀態</span>
                     <input id="displayStatusInput" type="text" />
+                  </label>
+                  <label data-field="primaryCtaLabel">
+                    <span>主要按鈕文字</span>
+                    <input id="primaryCtaLabelInput" type="text" />
+                  </label>
+                  <label data-field="primaryCtaHref">
+                    <span>主要按鈕連結</span>
+                    <input id="primaryCtaHrefInput" type="text" />
+                  </label>
+                  <label data-field="secondaryCtaLabel">
+                    <span>次要按鈕文字</span>
+                    <input id="secondaryCtaLabelInput" type="text" />
+                  </label>
+                  <label data-field="secondaryCtaHref">
+                    <span>次要按鈕連結</span>
+                    <input id="secondaryCtaHrefInput" type="text" />
                   </label>
                   <label data-field="email">
                     <span>Email</span>
@@ -129,9 +150,25 @@
                     <span>標籤，用逗號分隔</span>
                     <input id="tagsInput" type="text" />
                   </label>
+                  <label class="wide" data-field="scenarios">
+                    <span>適用場景，用逗號分隔</span>
+                    <input id="scenariosInput" type="text" />
+                  </label>
+                  <label class="wide" data-field="capabilities">
+                    <span>能力組合，用逗號分隔</span>
+                    <input id="capabilitiesInput" type="text" />
+                  </label>
                   <label class="wide" data-field="participants">
                     <span>參與公司，用逗號分隔</span>
                     <input id="participantsInput" type="text" />
+                  </label>
+                  <label class="wide" data-field="relatedCases">
+                    <span>關聯案例 ID，用逗號分隔</span>
+                    <input id="relatedCasesInput" type="text" />
+                  </label>
+                  <label class="wide" data-field="relatedSolutions">
+                    <span>關聯解決方案 ID，用逗號分隔</span>
+                    <input id="relatedSolutionsInput" type="text" />
                   </label>
                   <label class="wide" data-field="image">
                     <span>底圖路徑</span>
@@ -144,6 +181,46 @@
                   <label class="checkbox-line" data-field="featured">
                     <input id="featuredInput" type="checkbox" />
                     <span>設為主要案例</span>
+                  </label>
+                  <label class="checkbox-line" data-field="publicVisible">
+                    <input id="publicVisibleInput" type="checkbox" />
+                    <span>案例可公開顯示</span>
+                  </label>
+                  <label class="checkbox-line" data-field="anonymous">
+                    <input id="anonymousInput" type="checkbox" />
+                    <span>案例以匿名方式呈現</span>
+                  </label>
+                  <label data-field="companiesEyebrow">
+                    <span>集團成員眉標</span>
+                    <input id="companiesEyebrowInput" type="text" />
+                  </label>
+                  <label data-field="companiesTitle">
+                    <span>集團成員標題</span>
+                    <input id="companiesTitleInput" type="text" />
+                  </label>
+                  <label class="wide" data-field="companiesSummary">
+                    <span>集團成員說明</span>
+                    <textarea id="companiesSummaryInput" rows="3"></textarea>
+                  </label>
+                  <label data-field="solutionsEyebrow">
+                    <span>方案區眉標</span>
+                    <input id="solutionsEyebrowInput" type="text" />
+                  </label>
+                  <label data-field="solutionsTitle">
+                    <span>方案區標題</span>
+                    <input id="solutionsTitleInput" type="text" />
+                  </label>
+                  <label class="wide" data-field="solutionsSummary">
+                    <span>方案區說明</span>
+                    <textarea id="solutionsSummaryInput" rows="3"></textarea>
+                  </label>
+                  <label data-field="contactEyebrow">
+                    <span>聯絡區眉標</span>
+                    <input id="contactEyebrowInput" type="text" />
+                  </label>
+                  <label data-field="contactTitle">
+                    <span>聯絡區標題</span>
+                    <input id="contactTitleInput" type="text" />
                   </label>
                   <label class="checkbox-line">
                     <input id="publishedInput" type="checkbox" />

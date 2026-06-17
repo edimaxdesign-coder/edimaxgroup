@@ -57,7 +57,6 @@ const renderFrontPage = () => {
   const { companies, solutions, cases, contacts } = window.CMSStore.getPublished();
   const pageSettings = (content.pageSettings || [])[0] || {};
   const companyMatrix = document.querySelector("#companyMatrix");
-  const companyLinks = document.querySelector("#companyLinks");
   const solutionGrid = document.querySelector("#solutionGrid");
   const contactLinks = document.querySelector("#contactLinks");
 
@@ -100,22 +99,6 @@ const renderFrontPage = () => {
           </article>
         `,
       )
-      .join("");
-  }
-
-  if (companyLinks) {
-    companyLinks.innerHTML = companies
-      .map((company) => {
-        const name = `<strong class="brand-wordmark">${escapeHtml(company.shortName || company.title)}</strong>`;
-        const body = `
-          ${name}
-          <small>${escapeHtml((company.tags || []).slice(0, 2).join("與") || company.summary)}</small>
-          <span>${escapeHtml(company.summary)}</span>
-        `;
-        return company.url
-          ? `<a href="${escapeHtml(company.url)}" target="_blank" rel="noreferrer" aria-label="${escapeHtml(company.shortName || company.title)}">${body}</a>`
-          : `<span aria-label="${escapeHtml(company.shortName || company.title)}">${body}</span>`;
-      })
       .join("");
   }
 

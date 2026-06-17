@@ -276,6 +276,9 @@ h1 {
 }
 
 .company-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   min-height: 265px;
   padding: 24px;
 }
@@ -309,10 +312,33 @@ h1 {
   line-height: 1.7;
 }
 
+.company-website {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  margin-top: 20px;
+  padding: 0 14px;
+  border: 1px solid rgba(215, 25, 32, 0.28);
+  border-radius: 999px;
+  color: var(--brand-red);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.company-website:hover {
+  border-color: var(--brand-red);
+  background: rgba(215, 25, 32, 0.06);
+}
+
 .tag-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.company-card .tag-row {
+  margin-top: auto;
 }
 
 .tag-row span {

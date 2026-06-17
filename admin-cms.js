@@ -342,7 +342,7 @@
             activeCollection === "pageSettings"
               ? "Hero、區塊標題、CTA"
               : activeCollection === "companies"
-              ? (item.tags || []).join(", ")
+              ? `${(item.tags || []).join(", ")} · ${item.url ? "官網已設定" : "未設定官網"}`
               : activeCollection === "solutions"
                 ? `${(item.scenarios || []).join(", ")} · ${(item.participants || []).join(", ")}`
                 : activeCollection === "cases"
